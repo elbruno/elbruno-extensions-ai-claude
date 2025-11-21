@@ -1,6 +1,8 @@
 using Azure.Core;
 using Microsoft.Extensions.AI;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -14,8 +16,10 @@ public sealed class AzureClaudeClient : IChatClient
 {
     private readonly Uri _endpoint;
     private readonly string _modelId;
-    private readonly TokenCredential _credential;
+    private readonly TokenCredential? _credential;
+    private readonly string? _apiKey;
     private readonly HttpClient _httpClient;
+    private const string AnthropicVersion = "2023-06-01";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -38,6 +42,30 @@ public sealed class AzureClaudeClient : IChatClient
         _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
         _modelId = modelId ?? throw new ArgumentNullException(nameof(modelId));
         _credential = credential ?? throw new ArgumentNullException(nameof(credential));
+        _httpClient = httpClient ?? new HttpClient();
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AzureClaudeClient"/> class using an API key.
+    /// </summary>
+    /// <param name="endpoint">The Microsoft Foundry endpoint URL.</param>
+    /// <param name="modelId">The deployment name (e.g., "claude-sonnet-4-5").</param>
+    /// <param name="apiKey">The API key for authentication.</param>
+    /// <param name="httpClient">Optional HttpClient instance.</param>
+    public AzureClaudeClient(
+        Uri endpoint,
+        string modelId,
+        string apiKey,
+        HttpClient? httpClient = null)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            throw new ArgumentException("API key cannot be null or empty.", nameof(apiKey));
+        }
+
+        _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
+        _modelId = modelId ?? throw new ArgumentNullException(nameof(modelId));
+        _apiKey = apiKey;
         _httpClient = httpClient ?? new HttpClient();
     }
 
@@ -147,14 +175,16 @@ public sealed class AzureClaudeClient : IChatClient
         ClaudeRequest request,
         CancellationToken cancellationToken)
     {
-        var token = await GetAuthTokenAsync(cancellationToken).ConfigureAwait(false);
-
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, _endpoint);
-        httpRequest.Headers.Add("Authorization", $"Bearer {token}");
-        httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
+        await AddAuthenticationHeaderAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        httpRequest.Content = CreateJsonContent(request);
 
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
-        httpResponse.EnsureSuccessStatusCode();
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            throw new HttpRequestException($"Request failed with status {httpResponse.StatusCode}: {errorContent}");
+        }
 
         var response = await httpResponse.Content.ReadFromJsonAsync<ClaudeResponse>(JsonOptions, cancellationToken).ConfigureAwait(false);
         return response ?? throw new InvalidOperationException("Failed to deserialize response");
@@ -164,26 +194,46 @@ public sealed class AzureClaudeClient : IChatClient
         ClaudeRequest request,
         CancellationToken cancellationToken)
     {
-        var token = await GetAuthTokenAsync(cancellationToken).ConfigureAwait(false);
-
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, _endpoint);
-        httpRequest.Headers.Add("Authorization", $"Bearer {token}");
-        httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
+        await AddAuthenticationHeaderAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        httpRequest.Content = CreateJsonContent(request);
 
         var httpResponse = await _httpClient.SendAsync(
             httpRequest,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
 
-        httpResponse.EnsureSuccessStatusCode();
+        if (!httpResponse.IsSuccessStatusCode)
+        {
+            var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            throw new HttpRequestException($"Streaming request failed with status {httpResponse.StatusCode}: {errorContent}");
+        }
         return await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<string> GetAuthTokenAsync(CancellationToken cancellationToken)
+    private async Task AddAuthenticationHeaderAsync(HttpRequestMessage httpRequest, CancellationToken cancellationToken)
     {
+        if (!string.IsNullOrEmpty(_apiKey))
+        {
+            httpRequest.Headers.TryAddWithoutValidation("x-api-key", _apiKey);
+            httpRequest.Headers.TryAddWithoutValidation("anthropic-version", AnthropicVersion);
+            return;
+        }
+
+        if (_credential is null)
+        {
+            throw new InvalidOperationException("AzureClaudeClient requires either a TokenCredential or an API key.");
+        }
+
         var context = new TokenRequestContext(["https://cognitiveservices.azure.com/.default"]);
         var token = await _credential.GetTokenAsync(context, cancellationToken).ConfigureAwait(false);
-        return token.Token;
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+    }
+
+    private static HttpContent CreateJsonContent(ClaudeRequest request)
+    {
+        var payload = JsonSerializer.Serialize(request, JsonOptions);
+        return new StringContent(payload, Encoding.UTF8, "application/json");
     }
 
     private ChatCompletion ParseResponse(ClaudeResponse response)

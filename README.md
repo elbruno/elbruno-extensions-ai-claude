@@ -10,7 +10,7 @@ This library provides an `AzureClaudeClient` that allows you to interact with Cl
 
 - ✅ Full `IChatClient` implementation
 - ✅ Support for both streaming and non-streaming completions
-- ✅ Azure authentication using Azure Identity
+- ✅ Azure authentication using Azure Identity or API keys
 - ✅ System messages support
 - ✅ Multi-turn conversations
 - ✅ Token usage tracking
@@ -30,26 +30,46 @@ dotnet add package elbruno.Extensions.AI.Claude
 
 ## Quick Start
 
+### Authenticate with DefaultAzureCredential (recommended)
+
 ```csharp
 using Azure.Identity;
 using elbruno.Extensions.AI.Claude;
 using Microsoft.Extensions.AI;
 
-// Configure the client
 var endpoint = new Uri("https://your-endpoint.services.ai.azure.com");
-var deploymentName = "claude-sonnet-4-5"; // Your deployment name
+var deploymentName = "claude-sonnet-4-5";
 var credential = new DefaultAzureCredential();
 
-// Create the client
 var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 
-// Send a message
 var messages = new List<ChatMessage>
 {
     new(ChatRole.User, "What is the capital of France?")
 };
 
 var response = await client.CompleteAsync(messages);
+Console.WriteLine(response.Message.Text);
+```
+
+### Authenticate with an API key (when managed identity isn't available)
+
+```csharp
+using elbruno.Extensions.AI.Claude;
+using Microsoft.Extensions.AI;
+
+var endpoint = new Uri("https://your-endpoint.services.ai.azure.com");
+var deploymentName = "claude-sonnet-4-5";
+var apiKey = Environment.GetEnvironmentVariable("AZURE_CLAUDE_APIKEY")
+    ?? throw new InvalidOperationException("Store the API key securely (for example in Azure Key Vault) and expose it via configuration.");
+
+var client = new AzureClaudeClient(endpoint, deploymentName, apiKey);
+
+var response = await client.CompleteAsync(new List<ChatMessage>
+{
+    new(ChatRole.User, "Share two secure ways to store secrets in Azure.")
+});
+
 Console.WriteLine(response.Message.Text);
 ```
 
@@ -128,11 +148,17 @@ You can configure the client using environment variables:
 ```bash
 export AZURE_CLAUDE_ENDPOINT="https://your-endpoint.services.ai.azure.com"
 export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
+export AZURE_CLAUDE_APIKEY="your-api-key" # Prefer Azure Key Vault or managed identity instead of plain env vars
 ```
 
 ### Authentication
 
-The library uses Azure Identity for authentication. You can use any of the following:
+The library supports two authentication flows:
+
+1. **Azure Identity (recommended)** – Works with `DefaultAzureCredential`, `ManagedIdentityCredential`, `EnvironmentCredential`, `AzureCliCredential`, etc. Use this whenever you can rely on managed identity, service principals, or developer credentials.
+2. **API Key authentication** – Useful for constrained environments where Azure Identity is not available. Store API keys in Azure Key Vault or another secure secret store; never hardcode them.
+
+### Using Azure Identity
 
 - `DefaultAzureCredential` (recommended for development and production)
 - `ManagedIdentityCredential` (for Azure resources)
@@ -144,6 +170,15 @@ Example with specific credential:
 ```csharp
 var credential = new ManagedIdentityCredential();
 var client = new AzureClaudeClient(endpoint, deploymentName, credential);
+```
+
+### Using an API key
+
+```csharp
+var apiKey = configuration["AZURE_CLAUDE_APIKEY"]
+    ?? throw new InvalidOperationException("Configure AZURE_CLAUDE_APIKEY via Key Vault, Azure App Configuration, or user secrets.");
+
+var client = new AzureClaudeClient(endpoint, deploymentName, apiKey);
 ```
 
 ## Supported Models
@@ -183,6 +218,12 @@ public AzureClaudeClient(
     string modelId,
     TokenCredential credential,
     HttpClient? httpClient = null)
+
+public AzureClaudeClient(
+    Uri endpoint,
+    string modelId,
+    string apiKey,
+    HttpClient? httpClient = null)
 ```
 
 #### Properties
@@ -221,9 +262,14 @@ The project includes unit tests for core functionality. Run them with:
 dotnet test
 ```
 
-## Sample Application
+## Sample Applications
 
-A sample console application is included in the `samples` directory. To run it:
+Two console applications ship in the `samples` folder:
+
+1. `elbruno.Extensions.AI.Claude.Samples` – demonstrates Azure Default Credentials (managed identity flow).
+2. `elbruno.Extensions.AI.Claude.ApiKeySample` – demonstrates API key authentication. Store `AZURE_CLAUDE_APIKEY` securely and load it through configuration/User Secrets.
+
+Run the Default Credential sample:
 
 ```bash
 # Set environment variables
@@ -232,6 +278,16 @@ export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
 
 # Run the sample
 dotnet run --project samples/elbruno.Extensions.AI.Claude.Samples
+```
+
+Run the API key sample (after setting `AZURE_CLAUDE_APIKEY` securely):
+
+```bash
+export AZURE_CLAUDE_ENDPOINT="your-endpoint"
+export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
+export AZURE_CLAUDE_APIKEY="your-api-key"
+
+dotnet run --project samples/elbruno.Extensions.AI.Claude.ApiKeySample
 ```
 
 ## Contributing
@@ -258,6 +314,12 @@ For issues and questions:
 - Contact: El Bruno
 
 ## Changelog
+
+### 0.1.0-preview.2
+
+- Added API key authentication constructor and helper methods
+- Added dedicated API key console sample and documentation
+- Updated NuGet metadata and release notes
 
 ### 0.1.0 (Initial Release)
 
