@@ -9,12 +9,12 @@
     <Version>0.1.0-preview.1</Version>
     <Authors>El Bruno</Authors>
     <Company>El Bruno</Company>
-    <Description>A C# library for using Claude models in Azure AI Foundry</Description>
+    <Description>A C# library for using Claude models (Sonnet 4.5, Haiku 4.5, Opus 4.1) deployed in Microsoft Foundry, implementing Microsoft.Extensions.AI abstractions</Description>
     <PackageProjectUrl>https://github.com/elbruno/elbruno-extensions-ai-claude</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/elbruno/elbruno-extensions-ai-claude</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>azure;claude;ai;anthropic;ai-foundry</PackageTags>
+    <PackageTags>azure;claude;ai;anthropic;microsoft-foundry;claude4;sonnet;haiku;opus;extensions-ai</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
