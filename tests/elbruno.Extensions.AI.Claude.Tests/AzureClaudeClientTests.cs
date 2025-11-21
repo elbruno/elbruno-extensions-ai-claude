@@ -10,17 +10,17 @@ public class AzureClaudeClientTests
     public void Constructor_WithValidParameters_ShouldSucceed()
     {
         // Arrange
-        var endpoint = new Uri("https://example.cognitiveservices.azure.com");
-        var modelId = "claude-3-5-sonnet-20241022";
+        var endpoint = new Uri("https://example.services.ai.azure.com");
+        var deploymentName = "claude-sonnet-4-5";
         var credential = new DefaultAzureCredential();
 
         // Act
-        var client = new AzureClaudeClient(endpoint, modelId, credential);
+        var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 
         // Assert
         Assert.NotNull(client);
-        Assert.Equal("Azure AI Foundry", client.Metadata.ProviderName);
-        Assert.Equal(modelId, client.Metadata.ModelId);
+        Assert.Equal("Microsoft Foundry", client.Metadata.ProviderName);
+        Assert.Equal(deploymentName, client.Metadata.ModelId);
     }
 
     [Fact]
@@ -28,48 +28,48 @@ public class AzureClaudeClientTests
     {
         // Arrange
         Uri? endpoint = null;
-        var modelId = "claude-3-5-sonnet-20241022";
+        var deploymentName = "claude-sonnet-4-5";
         var credential = new DefaultAzureCredential();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new AzureClaudeClient(endpoint!, modelId, credential));
+        Assert.Throws<ArgumentNullException>(() =>
+            new AzureClaudeClient(endpoint!, deploymentName, credential));
     }
 
     [Fact]
     public void Constructor_WithNullModelId_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var endpoint = new Uri("https://example.cognitiveservices.azure.com");
-        string? modelId = null;
+        var endpoint = new Uri("https://example.services.ai.azure.com");
+        string? deploymentName = null;
         var credential = new DefaultAzureCredential();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new AzureClaudeClient(endpoint, modelId!, credential));
+        Assert.Throws<ArgumentNullException>(() =>
+            new AzureClaudeClient(endpoint, deploymentName!, credential));
     }
 
     [Fact]
     public void Constructor_WithNullCredential_ShouldThrowArgumentNullException()
     {
         // Arrange
-        var endpoint = new Uri("https://example.cognitiveservices.azure.com");
-        var modelId = "claude-3-5-sonnet-20241022";
+        var endpoint = new Uri("https://example.services.ai.azure.com");
+        var deploymentName = "claude-sonnet-4-5";
         TokenCredential? credential = null;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
-            new AzureClaudeClient(endpoint, modelId, credential!));
+        Assert.Throws<ArgumentNullException>(() =>
+            new AzureClaudeClient(endpoint, deploymentName, credential!));
     }
 
     [Fact]
     public void GetService_WithMatchingType_ShouldReturnClient()
     {
         // Arrange
-        var endpoint = new Uri("https://example.cognitiveservices.azure.com");
-        var modelId = "claude-3-5-sonnet-20241022";
+        var endpoint = new Uri("https://example.services.ai.azure.com");
+        var deploymentName = "claude-sonnet-4-5";
         var credential = new DefaultAzureCredential();
-        var client = new AzureClaudeClient(endpoint, modelId, credential);
+        var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 
         // Act
         var service = client.GetService(typeof(IChatClient));
@@ -83,10 +83,10 @@ public class AzureClaudeClientTests
     public void GetService_WithNonMatchingType_ShouldReturnNull()
     {
         // Arrange
-        var endpoint = new Uri("https://example.cognitiveservices.azure.com");
-        var modelId = "claude-3-5-sonnet-20241022";
+        var endpoint = new Uri("https://example.services.ai.azure.com");
+        var deploymentName = "claude-sonnet-4-5";
         var credential = new DefaultAzureCredential();
-        var client = new AzureClaudeClient(endpoint, modelId, credential);
+        var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 
         // Act
         var service = client.GetService(typeof(string));

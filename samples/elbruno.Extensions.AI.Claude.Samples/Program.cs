@@ -3,16 +3,16 @@ using elbruno.Extensions.AI.Claude;
 using Microsoft.Extensions.AI;
 
 // Configuration - Replace with your actual values
-var endpoint = new Uri(Environment.GetEnvironmentVariable("AZURE_CLAUDE_ENDPOINT") ?? "https://your-endpoint.cognitiveservices.azure.com");
-var modelId = Environment.GetEnvironmentVariable("AZURE_CLAUDE_MODEL") ?? "claude-3-5-sonnet-20241022";
+var endpoint = new Uri(Environment.GetEnvironmentVariable("AZURE_CLAUDE_ENDPOINT") ?? "https://your-endpoint.services.ai.azure.com");
+var deploymentName = Environment.GetEnvironmentVariable("AZURE_CLAUDE_MODEL") ?? "claude-sonnet-4-5";
 
 // Create the Azure Claude client
 var credential = new DefaultAzureCredential();
-var client = new AzureClaudeClient(endpoint, modelId, credential);
+var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 
 Console.WriteLine("Azure Claude Client Sample");
 Console.WriteLine($"Endpoint: {endpoint}");
-Console.WriteLine($"Model: {modelId}");
+Console.WriteLine($"Deployment: {deploymentName}");
 Console.WriteLine();
 
 // Example 1: Simple completion

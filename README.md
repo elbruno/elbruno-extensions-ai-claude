@@ -1,10 +1,10 @@
 # elbruno.Extensions.AI.Claude
 
-A C# library for using Claude models deployed in Azure AI Foundry, implementing the `Microsoft.Extensions.AI` abstractions.
+A C# library for using Claude models deployed in Microsoft Foundry, implementing the `Microsoft.Extensions.AI` abstractions.
 
 ## Overview
 
-This library provides an `AzureClaudeClient` that allows you to interact with Claude models (e.g., Claude 3.5 Sonnet) deployed in Azure AI Foundry. It follows the same patterns as `AzureOpenAIClient` and implements the standard `IChatClient` interface from `Microsoft.Extensions.AI`.
+This library provides an `AzureClaudeClient` that allows you to interact with Claude models (e.g., Claude Sonnet 4.5) deployed in Microsoft Foundry. It follows the same patterns as `AzureOpenAIClient` and implements the standard `IChatClient` interface from `Microsoft.Extensions.AI`.
 
 ## Features
 
@@ -25,7 +25,7 @@ dotnet add package elbruno.Extensions.AI.Claude
 ## Prerequisites
 
 1. An Azure subscription
-2. A Claude model deployed in Azure AI Foundry
+2. A Claude model deployed in Microsoft Foundry
 3. Appropriate Azure credentials configured
 
 ## Quick Start
@@ -36,12 +36,12 @@ using elbruno.Extensions.AI.Claude;
 using Microsoft.Extensions.AI;
 
 // Configure the client
-var endpoint = new Uri("https://your-endpoint.cognitiveservices.azure.com");
-var modelId = "claude-3-5-sonnet-20241022";
+var endpoint = new Uri("https://your-endpoint.services.ai.azure.com");
+var deploymentName = "claude-sonnet-4-5"; // Your deployment name
 var credential = new DefaultAzureCredential();
 
 // Create the client
-var client = new AzureClaudeClient(endpoint, modelId, credential);
+var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 
 // Send a message
 var messages = new List<ChatMessage>
@@ -126,8 +126,8 @@ var response = await client.CompleteAsync(messages, options);
 You can configure the client using environment variables:
 
 ```bash
-export AZURE_CLAUDE_ENDPOINT="https://your-endpoint.cognitiveservices.azure.com"
-export AZURE_CLAUDE_MODEL="claude-3-5-sonnet-20241022"
+export AZURE_CLAUDE_ENDPOINT="https://your-endpoint.services.ai.azure.com"
+export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
 ```
 
 ### Authentication
@@ -143,17 +143,33 @@ Example with specific credential:
 
 ```csharp
 var credential = new ManagedIdentityCredential();
-var client = new AzureClaudeClient(endpoint, modelId, credential);
+var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 ```
 
 ## Supported Models
 
-This library supports Claude models deployed in Azure AI Foundry, including:
+This library supports Claude models deployed in Microsoft Foundry through global standard deployment. The following models are currently available:
 
-- Claude 3.5 Sonnet (claude-3-5-sonnet-20241022)
-- Claude 3 Opus
-- Claude 3 Sonnet
-- Other Claude variants available in Azure AI Foundry
+### Available Models
+
+- **Claude Sonnet 4.5** (deployment name: `claude-sonnet-4-5`) - Anthropic's most capable model for building real-world agents and handling complex, long-horizon tasks. Best for agentic workflows, computer use capabilities, and production deployments.
+
+- **Claude Haiku 4.5** (deployment name: `claude-haiku-4-5`) - Delivers near-frontier performance with optimal speed and cost. One of the best coding and agent models, ideal for free products and scaled sub-agents.
+
+- **Claude Opus 4.1** (deployment name: `claude-opus-4-1`) - Industry leader for coding. Delivers sustained performance on long-running tasks requiring focused effort and thousands of steps, significantly expanding what AI agents can solve.
+
+All models support:
+
+- 1 million token context window
+- Extended thinking for enhanced reasoning
+- Image and text input
+- Code generation, analysis, and debugging (Sonnet 4.5 and Opus 4.1)
+
+### Choosing the Right Model
+
+- **Claude Sonnet 4.5**: Best for balanced performance and capabilities, production workflows, complex reasoning, and agentic tasks
+- **Claude Haiku 4.5**: Best for speed and cost optimization, high-volume processing, fast responses
+- **Claude Opus 4.1**: Best for complex coding tasks, long-running agent workflows, and enterprise applications requiring sustained performance
 
 ## API Reference
 
@@ -212,7 +228,7 @@ A sample console application is included in the `samples` directory. To run it:
 ```bash
 # Set environment variables
 export AZURE_CLAUDE_ENDPOINT="your-endpoint"
-export AZURE_CLAUDE_MODEL="your-model-id"
+export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
 
 # Run the sample
 dotnet run --project samples/elbruno.Extensions.AI.Claude.Samples
@@ -228,7 +244,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## References
 
-- [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-studio/)
+- [Microsoft Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
+- [Deploy and use Claude models in Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/foundry-models/how-to/use-foundry-models-claude)
 - [Microsoft.Extensions.AI Documentation](https://learn.microsoft.com/dotnet/api/microsoft.extensions.ai)
 - [Claude API Documentation](https://docs.anthropic.com/claude/reference)
 - [Azure Identity Library](https://learn.microsoft.com/dotnet/api/azure.identity)
@@ -236,12 +253,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For issues and questions:
+
 - Open an issue on [GitHub](https://github.com/elbruno/elbruno-extensions-ai-claude/issues)
 - Contact: El Bruno
 
 ## Changelog
 
 ### 0.1.0 (Initial Release)
+
 - Initial implementation of AzureClaudeClient
 - Support for completions and streaming
 - Azure authentication support

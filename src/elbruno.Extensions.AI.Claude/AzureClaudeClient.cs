@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace elbruno.Extensions.AI.Claude;
 
 /// <summary>
-/// Client for interacting with Claude models deployed in Azure AI Foundry.
+/// Client for interacting with Claude models deployed in Microsoft Foundry.
 /// </summary>
 public sealed class AzureClaudeClient : IChatClient
 {
@@ -25,8 +25,8 @@ public sealed class AzureClaudeClient : IChatClient
     /// <summary>
     /// Initializes a new instance of the <see cref="AzureClaudeClient"/> class.
     /// </summary>
-    /// <param name="endpoint">The Azure AI Foundry endpoint URL.</param>
-    /// <param name="modelId">The model ID (e.g., "claude-3-5-sonnet-20241022").</param>
+    /// <param name="endpoint">The Microsoft Foundry endpoint URL.</param>
+    /// <param name="modelId">The deployment name (e.g., "claude-sonnet-4-5").</param>
     /// <param name="credential">The Azure credential for authentication.</param>
     /// <param name="httpClient">Optional HttpClient instance.</param>
     public AzureClaudeClient(
@@ -44,7 +44,7 @@ public sealed class AzureClaudeClient : IChatClient
     /// <summary>
     /// Gets metadata about the chat client.
     /// </summary>
-    public ChatClientMetadata Metadata => new(providerName: "Azure AI Foundry", modelId: _modelId);
+    public ChatClientMetadata Metadata => new(providerName: "Microsoft Foundry", modelId: _modelId);
 
     /// <summary>
     /// Sends a chat completion request.
@@ -68,17 +68,17 @@ public sealed class AzureClaudeClient : IChatClient
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var request = BuildRequest(chatMessages, options, stream: true);
-        
+
         await using var stream = await SendStreamingRequestAsync(request, cancellationToken).ConfigureAwait(false);
         using var reader = new StreamReader(stream);
 
         while (!reader.EndOfStream)
         {
             var line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-            
+
             if (string.IsNullOrWhiteSpace(line)) continue;
             if (!line.StartsWith("data: ")) continue;
-            
+
             var data = line.Substring(6);
             if (data == "[DONE]") break;
 
@@ -148,7 +148,7 @@ public sealed class AzureClaudeClient : IChatClient
         CancellationToken cancellationToken)
     {
         var token = await GetAuthTokenAsync(cancellationToken).ConfigureAwait(false);
-        
+
         using var httpRequest = new HttpRequestMessage(HttpMethod.Post, _endpoint);
         httpRequest.Headers.Add("Authorization", $"Bearer {token}");
         httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
@@ -165,7 +165,7 @@ public sealed class AzureClaudeClient : IChatClient
         CancellationToken cancellationToken)
     {
         var token = await GetAuthTokenAsync(cancellationToken).ConfigureAwait(false);
-        
+
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, _endpoint);
         httpRequest.Headers.Add("Authorization", $"Bearer {token}");
         httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
@@ -174,7 +174,7 @@ public sealed class AzureClaudeClient : IChatClient
             httpRequest,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken).ConfigureAwait(false);
-        
+
         httpResponse.EnsureSuccessStatusCode();
         return await httpResponse.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -212,7 +212,7 @@ public sealed class AzureClaudeClient : IChatClient
         try
         {
             var update = JsonSerializer.Deserialize<ClaudeStreamingEvent>(data, JsonOptions);
-            
+
             if (update?.Type == "content_block_delta" && update.Delta?.Text != null)
             {
                 return new StreamingChatCompletionUpdate
@@ -221,7 +221,7 @@ public sealed class AzureClaudeClient : IChatClient
                     Text = update.Delta.Text
                 };
             }
-            
+
             if (update?.Type == "message_stop")
             {
                 return new StreamingChatCompletionUpdate
