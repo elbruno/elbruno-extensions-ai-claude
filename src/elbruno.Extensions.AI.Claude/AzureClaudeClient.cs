@@ -72,30 +72,41 @@ public sealed class AzureClaudeClient : IChatClient
     /// <summary>
     /// Gets metadata about the chat client.
     /// </summary>
-    public ChatClientMetadata Metadata => new(providerName: "Microsoft Foundry", modelId: _modelId);
+    public ChatClientMetadata Metadata => new("Microsoft Foundry", _endpoint, _modelId);
 
     /// <summary>
     /// Sends a chat completion request.
     /// </summary>
-    public async Task<ChatCompletion> CompleteAsync(
-        IList<ChatMessage> chatMessages,
+    public async Task<ChatResponse> GetResponseAsync(
+        IEnumerable<ChatMessage> chatMessages,
         ChatOptions? options = null,
         CancellationToken cancellationToken = default)
     {
-        var request = BuildRequest(chatMessages, options, stream: false);
+        var request = BuildRequest(chatMessages.ToList(), options, stream: false);
         var response = await SendRequestAsync(request, cancellationToken).ConfigureAwait(false);
         return ParseResponse(response);
     }
 
     /// <summary>
+    /// Sends a chat completion request (Legacy alias for GetResponseAsync).
+    /// </summary>
+    public Task<ChatResponse> CompleteAsync(
+        IList<ChatMessage> chatMessages,
+        ChatOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        return GetResponseAsync(chatMessages, options, cancellationToken);
+    }
+
+    /// <summary>
     /// Sends a streaming chat completion request.
     /// </summary>
-    public async IAsyncEnumerable<StreamingChatCompletionUpdate> CompleteStreamingAsync(
-        IList<ChatMessage> chatMessages,
+    public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        IEnumerable<ChatMessage> chatMessages,
         ChatOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var request = BuildRequest(chatMessages, options, stream: true);
+        var request = BuildRequest(chatMessages.ToList(), options, stream: true);
 
         await using var stream = await SendStreamingRequestAsync(request, cancellationToken).ConfigureAwait(false);
         using var reader = new StreamReader(stream);
@@ -116,6 +127,17 @@ public sealed class AzureClaudeClient : IChatClient
                 yield return update;
             }
         }
+    }
+
+    /// <summary>
+    /// Sends a streaming chat completion request (Legacy alias for GetStreamingResponseAsync).
+    /// </summary>
+    public IAsyncEnumerable<ChatResponseUpdate> CompleteStreamingAsync(
+        IList<ChatMessage> chatMessages,
+        ChatOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        return GetStreamingResponseAsync(chatMessages, options, cancellationToken);
     }
 
     /// <summary>
@@ -237,16 +259,16 @@ public sealed class AzureClaudeClient : IChatClient
         return new StringContent(payload, Encoding.UTF8, "application/json");
     }
 
-    private ChatCompletion ParseResponse(ClaudeResponse response)
+    private ChatResponse ParseResponse(ClaudeResponse response)
     {
         var content = response.Content?.FirstOrDefault();
         var text = content?.Text ?? string.Empty;
 
-        return new ChatCompletion(
+        return new ChatResponse(
             [new ChatMessage(ChatRole.Assistant, text)]
         )
         {
-            CompletionId = response.Id,
+            ResponseId = response.Id,
             ModelId = response.Model,
             FinishReason = MapFinishReason(response.StopReason),
             Usage = new UsageDetails
@@ -258,7 +280,7 @@ public sealed class AzureClaudeClient : IChatClient
         };
     }
 
-    private StreamingChatCompletionUpdate? ParseStreamingUpdate(string data)
+    private ChatResponseUpdate? ParseStreamingUpdate(string data)
     {
         try
         {
@@ -266,18 +288,13 @@ public sealed class AzureClaudeClient : IChatClient
 
             if (update?.Type == "content_block_delta" && update.Delta?.Text != null)
             {
-                return new StreamingChatCompletionUpdate
-                {
-                    Role = ChatRole.Assistant,
-                    Text = update.Delta.Text
-                };
+                return new ChatResponseUpdate(ChatRole.Assistant, update.Delta.Text);
             }
 
             if (update?.Type == "message_stop")
             {
-                return new StreamingChatCompletionUpdate
+                return new ChatResponseUpdate(ChatRole.Assistant, (string?)null)
                 {
-                    Role = ChatRole.Assistant,
                     FinishReason = ChatFinishReason.Stop
                 };
             }

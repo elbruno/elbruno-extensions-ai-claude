@@ -33,7 +33,7 @@ try
     };
 
     var response = await client.CompleteAsync(messages);
-    Console.WriteLine($"Response: {response.Message.Text}");
+    Console.WriteLine($"Response: {response.Messages.FirstOrDefault()?.Text}");
     Console.WriteLine($"Tokens used: {response.Usage?.TotalTokenCount}");
 }
 catch (Exception ex)
@@ -79,14 +79,14 @@ try
 
     var response1 = await client.CompleteAsync(conversation);
     Console.WriteLine($"User: What is Azure?");
-    Console.WriteLine($"Assistant: {response1.Message.Text}");
+    Console.WriteLine($"Assistant: {response1.Messages.FirstOrDefault()?.Text}");
 
-    conversation.Add(response1.Message);
+    conversation.Add(response1.Messages.First());
     conversation.Add(new ChatMessage(ChatRole.User, "What services does it provide?"));
 
     var response2 = await client.CompleteAsync(conversation);
     Console.WriteLine($"User: What services does it provide?");
-    Console.WriteLine($"Assistant: {response2.Message.Text}");
+    Console.WriteLine($"Assistant: {response2.Messages.FirstOrDefault()?.Text}");
 }
 catch (Exception ex)
 {

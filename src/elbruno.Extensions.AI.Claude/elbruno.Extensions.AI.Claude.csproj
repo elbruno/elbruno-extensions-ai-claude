@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>elbruno.Extensions.AI.Claude</PackageId>
-    <Version>0.1.0-preview.2</Version>
+    <Version>0.1.0-preview.3</Version>
     <Authors>El Bruno</Authors>
     <Company>El Bruno</Company>
     <Description>A C# library for using Claude models (Sonnet 4.5, Haiku 4.5, Opus 4.1) deployed in Microsoft Foundry, implementing Microsoft.Extensions.AI abstractions</Description>
@@ -16,14 +16,14 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>azure;claude;ai;anthropic;microsoft-foundry;claude4;sonnet;haiku;opus;extensions-ai</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>Added API key authentication support, new API key sample, and updated documentation.</PackageReleaseNotes>
+    <PackageReleaseNotes>Implemented GetResponseAsync to support Microsoft.Agents.AI.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <PackageReference Include="Azure.Core" Version="1.44.1" />
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
-    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.1.0-preview.1.25064.3" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.10.1" />
     <PackageReference Include="System.Text.Json" Version="9.0.1" />
   </ItemGroup>
 

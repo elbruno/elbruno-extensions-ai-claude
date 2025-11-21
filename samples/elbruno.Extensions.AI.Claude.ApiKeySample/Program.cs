@@ -28,7 +28,7 @@ var messages = new List<ChatMessage>
 };
 
 var response = await client.CompleteAsync(messages);
-Console.WriteLine(response.Message.Text);
+Console.WriteLine(response.Messages.FirstOrDefault()?.Text ?? "No response");
 
 Console.WriteLine();
 Console.WriteLine("Done. Store your API keys securely!");
