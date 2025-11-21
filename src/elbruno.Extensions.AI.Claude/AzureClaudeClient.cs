@@ -228,6 +228,7 @@ public sealed class AzureClaudeClient : IChatClient
         var context = new TokenRequestContext(["https://cognitiveservices.azure.com/.default"]);
         var token = await _credential.GetTokenAsync(context, cancellationToken).ConfigureAwait(false);
         httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+        httpRequest.Headers.TryAddWithoutValidation("anthropic-version", AnthropicVersion);
     }
 
     private static HttpContent CreateJsonContent(ClaudeRequest request)

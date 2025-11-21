@@ -172,6 +172,10 @@ var credential = new ManagedIdentityCredential();
 var client = new AzureClaudeClient(endpoint, deploymentName, credential);
 ```
 
+> **Note on Azure AI Foundry headers**
+>
+> Claude deployments hosted in Azure AI Foundry require the `anthropic-version: 2023-06-01` header for every request. Version `0.1.0-preview.3` of this library automatically applies it for both Managed Identity and API key scenarios. If you're pinned to an older version, add the header manually or upgrade to avoid `invalid_request_error` responses.
+
 ### Using an API key
 
 ```csharp
@@ -320,6 +324,11 @@ For issues and questions:
 - Added API key authentication constructor and helper methods
 - Added dedicated API key console sample and documentation
 - Updated NuGet metadata and release notes
+
+### 0.1.0-preview.3
+
+- Fixed `DefaultAzureCredential` flow by always including the required `anthropic-version` header
+- Documented the Claude header requirement in Azure AI Foundry
 
 ### 0.1.0 (Initial Release)
 
