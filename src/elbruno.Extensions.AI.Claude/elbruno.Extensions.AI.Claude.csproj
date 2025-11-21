@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>elbruno.Extensions.AI.Claude</PackageId>
+    <Version>0.1.0-preview.1</Version>
+    <Authors>El Bruno</Authors>
+    <Company>El Bruno</Company>
+    <Description>A C# library for using Claude models in Azure AI Foundry</Description>
+    <PackageProjectUrl>https://github.com/elbruno/elbruno-extensions-ai-claude</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/elbruno/elbruno-extensions-ai-claude</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>azure;claude;ai;anthropic;ai-foundry</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <PackageReference Include="Azure.Core" Version="1.44.1" />
+    <PackageReference Include="Azure.Identity" Version="1.13.1" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="9.1.0-preview.1.25064.3" />
+    <PackageReference Include="System.Text.Json" Version="9.0.1" />
+  </ItemGroup>
+
+</Project>
