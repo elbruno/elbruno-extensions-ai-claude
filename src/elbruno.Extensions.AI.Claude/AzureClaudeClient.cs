@@ -166,7 +166,7 @@ public sealed class AzureClaudeClient : IChatClient
     {
         var token = await GetAuthTokenAsync(cancellationToken).ConfigureAwait(false);
         
-        using var httpRequest = new HttpRequestMessage(HttpMethod.Post, _endpoint);
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, _endpoint);
         httpRequest.Headers.Add("Authorization", $"Bearer {token}");
         httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
 
@@ -231,9 +231,10 @@ public sealed class AzureClaudeClient : IChatClient
                 };
             }
         }
-        catch
+        catch (JsonException)
         {
             // Ignore parsing errors for unsupported event types
+            // Claude streaming API may include events we don't need to process
         }
 
         return null;
