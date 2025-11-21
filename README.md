@@ -309,6 +309,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Microsoft.Extensions.AI Documentation](https://learn.microsoft.com/dotnet/api/microsoft.extensions.ai)
 - [Claude API Documentation](https://docs.anthropic.com/claude/reference)
 - [Azure Identity Library](https://learn.microsoft.com/dotnet/api/azure.identity)
+- [Generative AI for Beginners - .NET](https://aka.ms/genainet)
 
 ## Support
 
