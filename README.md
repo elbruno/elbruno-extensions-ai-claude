@@ -268,10 +268,11 @@ dotnet test
 
 ## Sample Applications
 
-Two console applications ship in the `samples` folder:
+Three console applications ship in the `samples` folder:
 
 1. `elbruno.Extensions.AI.Claude.Samples` – demonstrates Azure Default Credentials (managed identity flow).
 2. `elbruno.Extensions.AI.Claude.ApiKeySample` – demonstrates API key authentication. Store `AZURE_CLAUDE_APIKEY` securely and load it through configuration/User Secrets.
+3. `elbruno.Extensions.AI.Claude.AgentSample` – demonstrates how to use the client with `Microsoft.Agents.AI` to create an AI agent.
 
 Run the Default Credential sample:
 
@@ -292,6 +293,16 @@ export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
 export AZURE_CLAUDE_APIKEY="your-api-key"
 
 dotnet run --project samples/elbruno.Extensions.AI.Claude.ApiKeySample
+```
+
+Run the Agent sample:
+
+```bash
+export AZURE_CLAUDE_ENDPOINT="your-endpoint"
+export AZURE_CLAUDE_MODEL="claude-sonnet-4-5"
+export AZURE_CLAUDE_APIKEY="your-api-key"
+
+dotnet run --project samples/elbruno.Extensions.AI.Claude.AgentSample
 ```
 
 ## Contributing
