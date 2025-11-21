@@ -1,10 +1,18 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using elbruno.Extensions.AI.Claude;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 
-// Configuration - Replace with your actual values
-var endpoint = new Uri(Environment.GetEnvironmentVariable("AZURE_CLAUDE_ENDPOINT") ?? "https://your-endpoint.services.ai.azure.com");
-var deploymentName = Environment.GetEnvironmentVariable("AZURE_CLAUDE_MODEL") ?? "claude-sonnet-4-5";
+// Build configuration from Environment Variables and User Secrets
+var configuration = new ConfigurationBuilder()
+    .AddUserSecrets<Program>()
+    .AddEnvironmentVariables()
+    .Build();
+
+// Configuration - Reads from User Secrets or Environment Variables
+// Environment Variables take precedence over User Secrets
+var endpoint = new Uri(configuration["AZURE_CLAUDE_ENDPOINT"] ?? "https://your-endpoint.services.ai.azure.com");
+var deploymentName = configuration["AZURE_CLAUDE_MODEL"] ?? "claude-sonnet-4-5";
 
 // Create the Azure Claude client
 var credential = new DefaultAzureCredential();
@@ -88,4 +96,6 @@ Console.WriteLine();
 
 Console.WriteLine("Sample completed. Press any key to exit.");
 Console.ReadKey();
+
+
 
