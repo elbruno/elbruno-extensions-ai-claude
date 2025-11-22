@@ -1,5 +1,7 @@
 # elbruno.Extensions.AI.Claude
 
+[![NuGet](https://img.shields.io/nuget/v/elbruno.Extensions.AI.Claude.svg)](https://www.nuget.org/packages/elbruno.Extensions.AI.Claude/)
+
 A C# library for using Claude models deployed in Microsoft Foundry, implementing the `Microsoft.Extensions.AI` abstractions.
 
 ## Overview
